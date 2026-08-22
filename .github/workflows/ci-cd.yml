@@ -8,8 +8,9 @@ on:
   workflow_dispatch:
 
 env:
-  # Variable no sensible (Settings > Actions > Variables). Si no está definida en el repo, se usa el default.
-  IMAGE_NAME: ${{ vars.IMAGE_NAME || 'cqrs-cuenta-api' }}
+  # Variable no sensible (Settings > Actions > Variables). Si no está definida en el repo, se usa
+  # el nombre del repo, así el paquete de GHCR queda ligado a este repo y no choca con el de otro.
+  IMAGE_NAME: ${{ vars.IMAGE_NAME || github.event.repository.name }}
 
 jobs:
   validacion:
