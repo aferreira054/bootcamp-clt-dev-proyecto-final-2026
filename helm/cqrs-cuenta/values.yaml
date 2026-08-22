@@ -1,0 +1,62 @@
+# Valores por defecto del chart. Los archivos values-dev.yaml / values-qa.yaml
+# sobreescriben lo necesario para cada entorno con `-f`.
+
+# --- No sensible (va al ConfigMap) ---
+environment: Development      # ASPNETCORE_ENVIRONMENT
+logLevel: Information          # Serilog:MinimumLevel:Default
+
+api:
+  replicaCount: 2
+  image:
+    repository: cqrs-cuenta-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30082
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  readinessProbe:
+    path: /swagger/v1/swagger.json
+    initialDelaySeconds: 10
+    periodSeconds: 5
+  livenessProbe:
+    path: /swagger/v1/swagger.json
+    initialDelaySeconds: 20
+    periodSeconds: 15
+
+postgres:
+  image: postgres:16-alpine
+  storage: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # --- Sensible (va al Secret) ---
+  credentials:
+    user: postgres
+    password: postgres
+    database: CuentasDB
+
+seq:
+  image: datalust/seq:latest
+  storage: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    type: NodePort
+    nodePort: 30081

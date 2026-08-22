@@ -1,0 +1,15 @@
+# Overrides para el entorno dev: helm install cqrs-dev ./helm/cqrs-cuenta -n cqrs-dev --create-namespace -f helm/cqrs-cuenta/values-dev.yaml
+
+environment: Development
+logLevel: Debug          # en dev queremos ver los 4 niveles de severidad, incluido Debug
+
+api:
+  replicaCount: 2
+  image:
+    tag: latest
+  service:
+    nodePort: 30082
+
+seq:
+  service:
+    nodePort: 30081

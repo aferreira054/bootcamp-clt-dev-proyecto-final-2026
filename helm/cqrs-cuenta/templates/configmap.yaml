@@ -1,0 +1,12 @@
+# No sensible: nivel de log y entorno. Inyectado en los pods con envFrom.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cqrs-cuenta.fullname" . }}-config
+  labels:
+    {{- include "cqrs-cuenta.labels" . | nindent 4 }}
+data:
+  ASPNETCORE_ENVIRONMENT: {{ .Values.environment | quote }}
+  Serilog__MinimumLevel__Default: {{ .Values.logLevel | quote }}
+  Seq__ServerUrl: "http://{{ include "cqrs-cuenta.fullname" . }}-seq:5341"
+  POSTGRES_DB: {{ .Values.postgres.credentials.database | quote }}

@@ -1,0 +1,25 @@
+# Overrides para el entorno qa: helm install cqrs-qa ./helm/cqrs-cuenta -n cqrs-qa --create-namespace -f helm/cqrs-cuenta/values-qa.yaml
+
+environment: Staging
+logLevel: Information     # en qa bajamos el ruido de Debug, más cercano a producción
+
+api:
+  replicaCount: 3
+  image:
+    tag: latest
+  service:
+    nodePort: 30092
+  resources:
+    requests:
+      cpu: 150m
+      memory: 192Mi
+    limits:
+      cpu: 750m
+      memory: 384Mi
+
+postgres:
+  storage: 2Gi
+
+seq:
+  service:
+    nodePort: 30091

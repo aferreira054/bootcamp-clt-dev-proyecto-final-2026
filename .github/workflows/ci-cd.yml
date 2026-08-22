@@ -1,0 +1,70 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  # Variable no sensible (Settings > Actions > Variables). Si no está definida en el repo, se usa el default.
+  IMAGE_NAME: ${{ vars.IMAGE_NAME || 'cqrs-cuenta-api' }}
+
+jobs:
+  validacion:
+    name: Validacion (restore -> build -> test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore CleanArchitecture.Full.sln
+
+      - name: Build
+        run: dotnet build CleanArchitecture.Full.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test CleanArchitecture.Full.sln --no-build -c Release --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publicar resultados de test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/TestResults/**/*.trx"
+          retention-days: 7
+
+  empaquetado:
+    name: Empaquetado (build & push imagen Docker)
+    needs: validacion
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Login usa un secret (GITHUB_TOKEN, credencial sensible provista por Actions); el nombre
+      # de la imagen usa la Variable IMAGE_NAME (no sensible) definida arriba en `env`.
+      - name: Login en GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
