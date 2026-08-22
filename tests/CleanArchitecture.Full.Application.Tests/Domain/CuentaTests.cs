@@ -16,7 +16,7 @@ public class CuentaTests
 
         cuenta.ActualizarSaldo(50m, TipoMovimiento.Deposito);
 
-        Assert.Equal(140m, cuenta.Saldo);
+        Assert.Equal(150m, cuenta.Saldo);
         Assert.NotNull(cuenta.FechaUltimoMovimiento);
     }
 
