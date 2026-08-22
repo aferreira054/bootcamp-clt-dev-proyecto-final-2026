@@ -364,35 +364,35 @@ Sobre Variables y Secrets: `IMAGE_NAME` es una variable no sensible (Settings > 
 
 ### Demo: un PR con un test roto a propósito
 
-Abrí el PR #1 (rama `demo/ci-fallo-intencional` contra `master`): https://github.com/aferreira054/BootcampCLT2026/pull/1
+Abrí el PR #1 (rama `test/ci-fallo-intencional` contra `master`): https://github.com/aferreira054/bootcamp-clt-dev-proyecto-final-2026/pull/1
 
-Primero el commit que rompe el test a propósito (`9ee07a2`): cambié el valor esperado en `CuentaTests.Deposito_incrementa_el_saldo` de 150m a 140m. El job `validacion` corrió y el step de test falló, check en rojo:
+Primero el commit que rompe el test a propósito (`c5de1d1`): cambié el valor esperado en `CuentaTests.Deposito_incrementa_el_saldo` de 150m a 140m. El job `validacion` corrió y el step de test falló, check en rojo:
 
-> Run 32582419564: "1 failing, 1 skipped checks"
+> Run 32584279573: "1 failing, 1 skipped checks"
 
 ```
-[xUnit.net 00:00:00.38]     CleanArchitecture.Full.Application.Tests.Domain.CuentaTests.Deposito_incrementa_el_saldo [FAIL]
+[xUnit.net 00:00:00.29]     CleanArchitecture.Full.Application.Tests.Domain.CuentaTests.Deposito_incrementa_el_saldo [FAIL]
   Error Message:
    Assert.Equal() Failure: Values differ
 Expected: 140
 Actual:   150
      at CleanArchitecture.Full.Application.Tests.Domain.CuentaTests.Deposito_incrementa_el_saldo() in .../CuentaTests.cs:line 19
 
-Failed!  - Failed:     1, Passed:    15, Skipped:     0, Total:    16, Duration: 126 ms
+Failed!  - Failed:     1, Passed:    15, Skipped:     0, Total:    16, Duration: 100 ms
 Error: Process completed with exit code 1.
 ```
 
 El job `empaquetado` quedó skipped, porque depende de `needs: validacion` y ni intentó correr con el build roto.
 
-Después el commit que corrige el test (`d0e3a25`): vuelvo el valor a 150m y lo pusheo a la misma rama. El workflow corre de nuevo solo, y esta vez el check queda verde:
+Después el commit que corrige el test (`92a5204`): vuelvo el valor a 150m y lo pusheo a la misma rama. El workflow corre de nuevo solo, y esta vez el check queda verde:
 
-> "All checks have passed, 1 skipped, 1 successful checks", CI/CD / Validacion (restore -> build -> test), successful en 36s
+> Run 32584366514: "All checks have passed, 1 skipped, 1 successful checks", CI/CD / Validacion (restore -> build -> test), successful en 22s
 
 ```
-Passed!  - Failed:     0, Passed:    16, Skipped:     0, Total:    16, Duration: 269 ms - CleanArchitecture.Full.Application.Tests.dll (net10.0)
+Passed!  - Failed:     0, Passed:    16, Skipped:     0, Total:    16, Duration: 69 ms - CleanArchitecture.Full.Application.Tests.dll (net10.0)
 ```
 
-El job `empaquetado` sigue en skipped porque el trigger es un pull_request, no un push a main/master. Recién se activa al mergear el PR.
+El job `empaquetado` sigue en skipped en ambos runs porque el trigger es un pull_request, no un push a main/master. El PR se mergeó a `master` el 22/08/2026, y ese push sí disparó el job de empaquetado.
 
 ## Notas de diseño
 
