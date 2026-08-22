@@ -115,7 +115,7 @@ dotnet run --project src/CleanArchitecture.Full.Api
 dotnet test CleanArchitecture.Full.sln
 ```
 
-`tests/CleanArchitecture.Full.Application.Tests` cubre el validator de `CreateCuenta` y las reglas de dominio de `Cuenta` (depósitos, retiros con saldo insuficiente, cancelación con y sin saldo, etc). Son 16 tests en total.
+`tests/CleanArchitecture.Full.Application.Tests` cubre los validators de `CreateCuenta` y `UpdateSaldo`, y las reglas de dominio de `Cuenta` (depósitos, retiros con saldo insuficiente, cancelación con y sin saldo, etc). Son 20 tests en total.
 
 ## Observabilidad / Logging
 
@@ -403,5 +403,7 @@ PUT no permite cancelar cuentas: el validator de UpdateCuenta bloquea explícita
 Migraciones al arranque: la API aplica `Database.MigrateAsync()` al iniciar. Con múltiples réplicas (como pasa en K8s), todas corren la migración al arrancar, pero EF Core la protege con un lock a nivel de base así que es seguro. De todas formas, en un escenario de más escala convendría moverlo a un Job o init step separado en vez de dejarlo en el arranque de cada réplica.
 
 LimiteCredito requerido para cuentas de crédito: el validator original solo tenía `GreaterThan(0)`, y en FluentValidation eso no falla sobre un `decimal?` nulo. En la práctica dejaba crear cuentas de crédito sin límite, aunque el mensaje de error decía "requerido". Le agregué un `NotNull()` explícito, y quedó cubierto con un test.
+
+`UpdateSaldoCommand` sin validator: era el único de los 5 commands que no tenía uno. Sin validación, un `Monto` negativo con `TipoMovimiento=Deposito` bajaba el saldo en vez de subirlo, sin que nada lo frenara antes de llegar al handler. Agregué `UpdateSaldoCommandValidator` (Monto mayor a cero, TipoMovimiento dentro del enum) con sus tests.
 
 El Dockerfile restaura solo el proyecto de la API, no el .sln completo, así la imagen de producción no arrastra el proyecto de tests ni sus paquetes.
